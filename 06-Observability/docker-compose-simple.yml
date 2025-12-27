@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  catapp:
+    image: mikesir87/cats:1.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.catapp.rule=HostRegexp(`{host:.+}`)"  # ✅ Sintaxis correcta
+      - "traefik.http.routers.catapp.entrypoints=web"
+      - "traefik.http.services.catapp.loadbalancer.server.port=5000"
+
+networks:
+  default:
+    name: traefik-cats
